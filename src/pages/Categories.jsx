@@ -1,4 +1,6 @@
+// src/pages/Categories.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 
 // Category Images
@@ -7,11 +9,12 @@ import makeupImg from "../assets/images/categories/makeup.jpg";
 import haircareImg from "../assets/images/categories/haircare.jpg";
 import bodycareImg from "../assets/images/categories/bodycare.jpg";
 
+// ✅ Update links to go to /offers
 const categories = [
-  { name: "Skincare", img: skincareImg, link: "/products?category=Skincare" },
-  { name: "Makeup", img: makeupImg, link: "/products?category=Makeup" },
-  { name: "Haircare", img: haircareImg, link: "/products?category=Haircare" },
-  { name: "Body Care", img: bodycareImg, link: "/products?category=BodyCare" },
+  { name: "Skincare", img: skincareImg, link: "/offers" },
+  { name: "Makeup", img: makeupImg, link: "/offers" },
+  { name: "Haircare", img: haircareImg, link: "/offers" },
+  { name: "Body Care", img: bodycareImg, link: "/offers" },
 ];
 
 export default function Categories() {
@@ -26,24 +29,32 @@ export default function Categories() {
         <div className="row g-4">
           {categories.map((cat, idx) => (
             <div key={idx} className="col-md-3">
-              <a href={cat.link} className="text-decoration-none text-dark">
-                <div className="card shadow-sm hover-scale">
-                  <img src={cat.img} alt={cat.name} className="img-fluid rounded-top" />
+              <Link
+                to={cat.link}
+                className="text-decoration-none text-dark"
+              >
+                <div className="card shadow-sm hover-scale h-100">
+                  <img
+                    src={cat.img}
+                    alt={cat.name}
+                    className="img-fluid rounded-top"
+                  />
                   <div className="card-body text-center">
                     <h5 className="fw-bold">{cat.name}</h5>
-                    <p>Shop Now →</p>
+                    <p className="mb-0">Shop Now →</p>
                   </div>
                 </div>
-              </a>
+              </Link>
             </div>
           ))}
         </div>
 
-        {/* Featured Category CTA */}
         <div className="py-5 text-center mt-5">
           <h2 className="fw-bold mb-3">Discover Your Favorites</h2>
           <p>Hand-picked products for glowing skin and beauty at your fingertips.</p>
-          <a href="/products" className="btn btn-dark btn-lg">Browse All Products</a>
+          <Link to="/offers" className="btn btn-dark btn-lg">
+            Browse All Offers
+          </Link>
         </div>
       </div>
     </MainLayout>

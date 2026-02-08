@@ -10,7 +10,7 @@ export default function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showCart, setShowCart] = useState(false);
 
-  const { cart, total } = useCart();
+  const { cart, total, count } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -24,17 +24,17 @@ export default function Navbar() {
   // ================= AUTO-CLOSE MINI CART ON ROUTE CHANGE =================
   useEffect(() => {
     setShowCart(false);
+    setIsOpen(false);
   }, [location.pathname]);
 
   // ================= SEARCH HANDLER =================
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      // Navigate to /products with search query
-      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
-      setSearchTerm("");
-      setIsOpen(false);
-    }
+    if (!searchTerm.trim()) return;
+
+    navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+    setSearchTerm("");
+    setIsOpen(false);
   };
 
   // ==================== Mega Menu ====================
@@ -135,15 +135,15 @@ export default function Navbar() {
           </button>
 
           <div className={`nav-links ${isOpen ? "open" : ""}`}>
-            <Link to="/" className={`nav-link ${location.pathname === "/" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Home</Link>
-            <Link to="/products" className={`nav-link ${location.pathname.startsWith("/products") ? "active" : ""}`} onClick={() => setIsOpen(false)}>Products</Link>
-            <Link to="/categories" className={`nav-link ${location.pathname === "/categories" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Categories</Link>
-            <Link to="/offers" className={`nav-link ${location.pathname === "/offers" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Offers</Link>
-            <Link to="/cartpage" className={`nav-link ${location.pathname === "/cartpage" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Cart</Link>
-            <Link to="/contact" className={`nav-link ${location.pathname === "/contact" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Contact</Link>
-            <Link to="/checkout" className={`nav-link ${location.pathname === "/checkout" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Checkout</Link>
-            <Link to="/signin" className={`nav-link ${location.pathname === "/signin" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Sign In</Link>
-            <Link to="/signup" className={`nav-link ${location.pathname === "/signup" ? "active" : ""}`} onClick={() => setIsOpen(false)}>Sign Up</Link>
+            <Link to="/" className={`nav-link ${location.pathname === "/" ? "active" : ""}`}>Home</Link>
+            <Link to="/products" className={`nav-link ${location.pathname.startsWith("/products") ? "active" : ""}`}>Products</Link>
+            <Link to="/categories" className={`nav-link ${location.pathname === "/categories" ? "active" : ""}`}>Categories</Link>
+            <Link to="/offers" className={`nav-link ${location.pathname === "/offers" ? "active" : ""}`}>Offers</Link>
+            <Link to="/cartpage" className={`nav-link ${location.pathname === "/cartpage" ? "active" : ""}`}>Cart</Link>
+            <Link to="/contact" className={`nav-link ${location.pathname === "/contact" ? "active" : ""}`}>Contact</Link>
+            <Link to="/checkout" className={`nav-link ${location.pathname === "/checkout" ? "active" : ""}`}>Checkout</Link>
+            <Link to="/signin" className={`nav-link ${location.pathname === "/signin" ? "active" : ""}`}>Sign In</Link>
+            <Link to="/signup" className={`nav-link ${location.pathname === "/signup" ? "active" : ""}`}>Sign Up</Link>
 
             <form className="search-form" onSubmit={handleSearch}>
               <input
@@ -158,7 +158,7 @@ export default function Navbar() {
             {/* ================= Mini Cart ================= */}
             <div className="cart-container">
               <button className="btn btn-cart" onClick={() => setShowCart(!showCart)}>
-                🛒 {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
+                🛒 {count > 0 && <span className="cart-count">{count}</span>}
               </button>
 
               {showCart && (
@@ -168,16 +168,23 @@ export default function Navbar() {
                   ) : (
                     <>
                       {cart.map(item => (
-                        <div key={item.id} className="mini-cart-item">
-                          <img src={item.image} alt={item.name} width="40" />
+                        <div
+                          key={item._id || item.name}
+                          className="mini-cart-item"
+                        >
+                          <img src={item.cartImage} alt={item.name} width="40" />
                           <div>
                             <p>{item.name}</p>
                             <small>Qty: {item.qty}</small>
                           </div>
                         </div>
                       ))}
-                      <p className="mini-total">Total: ₦{total.toLocaleString()}</p>
-                      <Link to="/products" onClick={() => setShowCart(false)}>View Cart</Link>
+                      <p className="mini-total">
+                        Total: ₦{total.toLocaleString()}
+                      </p>
+                      <Link to="/cartpage" onClick={() => setShowCart(false)}>
+                        View Cart
+                      </Link>
                     </>
                   )}
                 </div>
@@ -197,10 +204,9 @@ export default function Navbar() {
             >
               <span className="mega-title">{menu.title}</span>
               <div className={`mega-columns ${activeDropdown === menu.title ? "open" : ""}`}>
-                {splitIntoColumns(menu.items, 3).map((col, idx) => (
+                {splitIntoColumns(menu.items).map((col, idx) => (
                   <div className="mega-column" key={idx}>
                     {col.map((item, i) => (
-                      // ✅ Navigate to /products with category query
                       <Link
                         key={i}
                         to={`/products?category=${encodeURIComponent(item)}`}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
-import { useProducts } from "../context/ProductContext";
 import ProductCard from "../components/products/ProductCard";
+import products from "../data/products";
 
 // Hero
 import heroBg from "../assets/images/hero/hero-bg.jpg";
@@ -32,77 +32,46 @@ import insta5 from "../assets/images/instagram/insta5.jpg";
 import insta6 from "../assets/images/instagram/insta6.jpg";
 
 export default function Home() {
-  const { products = [] } = useProducts();
   const [modalImg, setModalImg] = useState(null);
 
-  /* ================= DYNAMIC FLAGS ================= */
   const featuredProducts = products.filter((p) => p.isFeatured);
   const hotDeals = products.filter((p) => p.isHotDeal);
 
-  /* ================= FADE-IN ANIMATIONS ================= */
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("show");
-        });
-      },
+      (entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("show")),
       { threshold: 0.15 }
     );
 
     document.querySelectorAll(".fade-in").forEach((el) => observer.observe(el));
-
     return () => observer.disconnect();
   }, []);
 
-  /* ================= TESTIMONIALS ================= */
   const testimonials = [
-    {
-      img: user1,
-      comment: "Amazing products! My skin feels incredible.",
-      name: "Verified Customer",
-    },
-    {
-      img: user2,
-      comment: "Instant glow! I can’t imagine using anything else.",
-      name: "Verified Customer",
-    },
-    {
-      img: user3,
-      comment: "Such a game-changer! My skin feels so soft and radiant.",
-      name: "Verified Customer",
-    },
+    { img: user1, comment: "Amazing products! My skin feels incredible.", name: "Verified Customer" },
+    { img: user2, comment: "Instant glow! I can’t imagine using anything else.", name: "Verified Customer" },
+    { img: user3, comment: "Such a game-changer! My skin feels so soft and radiant.", name: "Verified Customer" },
   ];
 
   return (
     <MainLayout>
-      {/* ================= HERO ================= */}
-      <section
-        className="hero-section fade-in"
-        style={{ backgroundImage: `url(${heroBg})` }}
-      >
+      {/* HERO */}
+      <section className="hero-section fade-in" style={{ backgroundImage: `url(${heroBg})` }}>
         <div className="hero-content">
           <h1>Luxury Beauty for Everyday Glow</h1>
           <p>Premium skincare & beauty products curated for you</p>
-          <a href="/products" className="btn btn-hero">
-            Shop Collection
-          </a>
+          <a href="/products" className="btn btn-hero">Shop Collection</a>
         </div>
         <div className="hero-badge badge-1">🔥 Best Seller</div>
         <div className="hero-badge badge-2">✨ New Arrival</div>
         <div className="hero-badge badge-3">💄 Premium Quality</div>
       </section>
 
-      {/* ================= CATEGORIES ================= */}
+      {/* CATEGORIES */}
       <section className="container py-5 fade-in">
         <h2 className="text-center mb-4">Shop by Category</h2>
         <div className="cards-grid">
-          {[
-            { name: "Skincare", img: skincareCat },
-            { name: "Hair Care", img: hairCat },
-            { name: "Bath & Body", img: bathCat },
-            { name: "Supplements", img: supplementCat },
-          ].map((cat, idx) => (
+          {[{ name: "Skincare", img: skincareCat }, { name: "Hair Care", img: hairCat }, { name: "Bath & Body", img: bathCat }, { name: "Supplements", img: supplementCat }].map((cat, idx) => (
             <div key={idx} className="category-card">
               <img src={cat.img} alt={cat.name} />
               <h5>{cat.name}</h5>
@@ -111,7 +80,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= FEATURED PRODUCTS ================= */}
+      {/* FEATURED PRODUCTS */}
       <section className="container py-5 fade-in">
         <h2 className="text-center mb-4">Featured Products</h2>
         {featuredProducts.length === 0 ? (
@@ -119,17 +88,13 @@ export default function Home() {
         ) : (
           <div className="cards-grid">
             {featuredProducts.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                section="featured" // ✅ ensures featured fallback images are used
-              />
+              <ProductCard key={product._id || product.name} product={product} section="featured" mode="add" />
             ))}
           </div>
         )}
       </section>
 
-      {/* ================= HOT DEALS ================= */}
+      {/* HOT DEALS */}
       <section className="py-5 bg-soft fade-in">
         <h2 className="text-center mb-4">Hot Deals</h2>
         {hotDeals.length === 0 ? (
@@ -137,36 +102,13 @@ export default function Home() {
         ) : (
           <div className="cards-grid container">
             {hotDeals.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                section="hotdeal" // ✅ ensures hotdeal fallback images are used
-              />
+              <ProductCard key={product._id || product.name} product={product} section="hotdeal" mode="add" />
             ))}
           </div>
         )}
       </section>
 
-      {/* ================= WHY CHOOSE US ================= */}
-      <section className="container py-5 text-center fade-in">
-        <h2 className="mb-4">Why Choose HOT-COSMETICS?</h2>
-        <div className="cards-grid">
-          <div className="card">
-            <h5>Premium Quality</h5>
-            <p>Only trusted brands & safe ingredients</p>
-          </div>
-          <div className="card">
-            <h5>Fast Delivery</h5>
-            <p>48-hour delivery across major cities</p>
-          </div>
-          <div className="card">
-            <h5>24/7 Support</h5>
-            <p>We’re always here to help</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= BRAND STRIP ================= */}
+      {/* BRAND STRIP */}
       <section className="brands-strip fade-in">
         <div className="brands-marquee">
           {[misshaLogo, jumisoLogo, niveaLogo, palmersLogo].map((logo, idx) => (
@@ -177,19 +119,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= TESTIMONIALS ================= */}
+      {/* TESTIMONIALS */}
       <section className="py-5 bg-soft text-center fade-in">
         <h2 className="mb-4">What Our Customers Say</h2>
         <div className="cards-grid container">
           {testimonials.map((item, idx) => (
             <div key={idx} className="card">
-              <img
-                src={item.img}
-                alt="User"
-                className="rounded-circle mb-3"
-                width="80"
-                height="80"
-              />
+              <img src={item.img} alt="User" className="rounded-circle mb-3" width="80" height="80" />
               <p>“{item.comment}”</p>
               <h6 className="fw-bold">{item.name}</h6>
             </div>
@@ -197,16 +133,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= INSTAGRAM ================= */}
+      {/* INSTAGRAM */}
       <section className="container py-5 text-center fade-in">
         <h2 className="mb-4">Follow Us on Instagram</h2>
         <div className="cards-grid">
           {[insta1, insta2, insta3, insta4, insta5, insta6].map((img, idx) => (
-            <div
-              key={idx}
-              className="instagram-card"
-              onClick={() => setModalImg(img)}
-            >
+            <div key={idx} className="instagram-card" onClick={() => setModalImg(img)}>
               <img src={img} alt="Instagram" />
               <div className="insta-overlay">
                 <span>❤️</span>
@@ -224,7 +156,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ================= NEWSLETTER ================= */}
+      {/* NEWSLETTER */}
       <section className="py-5 text-center container fade-in">
         <h2>Join Our Newsletter</h2>
         <p>Exclusive offers & beauty tips straight to your inbox</p>

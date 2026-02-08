@@ -1,33 +1,78 @@
-import React from "react";
+import React, { useState } from "react";
 import MainLayout from "../components/layout/MainLayout";
+import { useCart } from "../context/CartContext";
+import ProductModal from "../components/ProductModal";
 
-// Offer Images
-import misshaOffer from "../assets/images/products/missha-sunscreen.jpg";
-import jumisoOffer from "../assets/images/products/jumiso-serum.jpg";
-import palmersOffer from "../assets/images/products/palmers-offer.jpg";
+// ✅ OFFER IMAGES
+import misshaOffer from "../assets/images/offer/img/missha-sunscreen.jpg";
+import jumisoOffer from "../assets/images/offer/img/jumiso-serum.jpg";
+import palmersOffer from "../assets/images/offer/img/palmers-offer.jpg";
 
+// Initial offers
 const offers = [
   {
+    _id: "offer-1",
     name: "Missha Sun Gel SPF50+",
-    img: misshaOffer,
+    image: misshaOffer,
     oldPrice: 16000,
-    newPrice: 14800
+    price: 14800,
+    description: "Lightweight sunscreen with high UV protection."
   },
   {
+    _id: "offer-2",
     name: "Palmers Cocoa Butter Oil",
-    img: palmersOffer,
+    image: palmersOffer,
     oldPrice: 25000,
-    newPrice: 19500
+    price: 19500,
+    description: "Deeply nourishes and improves skin elasticity."
   },
   {
+    _id: "offer-3",
     name: "Jumiso Vitamin C Serum",
-    img: jumisoOffer,
+    image: jumisoOffer,
     oldPrice: 23000,
-    newPrice: 18500
+    price: 18500,
+    description: "Brightens skin and fades dark spots."
   }
 ];
 
+// ✅ Helper to synchronize fallbacks across cards
+const createFallbackManager = (images) => {
+  // Keep track of which image is currently in use
+  let usedImages = new Set();
+
+  const getFallback = (failedImage) => {
+    const available = images.filter(img => img !== failedImage && !usedImages.has(img));
+
+    let fallback;
+    if (available.length === 0) {
+      // All used, reset
+      usedImages.clear();
+      fallback = images.find(img => img !== failedImage);
+    } else {
+      // Pick random from available
+      fallback = available[Math.floor(Math.random() * available.length)];
+    }
+
+    // Mark as used
+    usedImages.add(fallback);
+    return fallback;
+  };
+
+  const reset = () => {
+    usedImages.clear();
+  };
+
+  return { getFallback, reset };
+};
+
+// Create fallback manager instance
+const fallbackManager = createFallbackManager([misshaOffer, jumisoOffer, palmersOffer]);
+
 export default function Offers() {
+  const { addToCart } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   return (
     <MainLayout>
       <div className="container py-5">
@@ -37,36 +82,56 @@ export default function Offers() {
         </p>
 
         <div className="row g-4">
-          {offers.map((offer, idx) => (
-            <div key={idx} className="col-md-4">
-              <div className="card p-3 shadow-sm hover-scale">
+          {offers.map((offer) => (
+            <div key={offer._id} className="col-md-4">
+              <div
+                className="card p-3 shadow-sm hover-scale h-100 cursor-pointer"
+                onClick={() => setSelectedProduct(offer)}
+              >
+                {/* ✅ Image with synchronized fallback */}
                 <img
-                  src={offer.img}
+                  src={offer.image}
                   alt={offer.name}
+                  onError={(e) => {
+                    e.target.src = fallbackManager.getFallback(e.target.src);
+                  }}
                   className="img-fluid mb-3 rounded"
                 />
+
                 <h5 className="fw-bold">{offer.name}</h5>
+
                 <p className="text-muted mb-2">
                   <span className="text-decoration-line-through">
                     ₦{offer.oldPrice.toLocaleString()}
                   </span>{" "}
-                  → <span className="text-danger fw-bold">₦{offer.newPrice.toLocaleString()}</span>
+                  →{" "}
+                  <span className="text-danger fw-bold">
+                    ₦{offer.price.toLocaleString()}
+                  </span>
                 </p>
-                <button className="btn btn-dark w-100">Add to Cart</button>
+
+                <button
+                  className="btn btn-dark w-100 mt-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart({
+                      ...offer,
+                      image: offer.image, // Keep original, cart fallback handled separately
+                      qty: 1
+                    });
+                  }}
+                >
+                  Add to Cart
+                </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Newsletter Section */}
-        <div className="py-5 text-center">
-          <h2 className="fw-bold mb-3">Stay Updated!</h2>
-          <p>Subscribe to get notifications about new offers and exclusive deals.</p>
-          <div className="d-flex justify-content-center gap-2 flex-wrap">
-            <input type="email" className="form-control w-25" placeholder="Enter your email" />
-            <button className="btn btn-dark">Subscribe</button>
-          </div>
-        </div>
+        <ProductModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
       </div>
     </MainLayout>
   );

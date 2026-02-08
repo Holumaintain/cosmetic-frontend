@@ -1,46 +1,78 @@
+// src/pages/CartPage.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
 import { useCart } from "../context/CartContext";
 
-// ✅ MULTIPLE LOCAL FALLBACK IMAGES
+// ================= FEATURED PRODUCT IMAGES =================
+import featuredVitc from "../assets/images/products/featured/vitc.jpg";
+import featuredShea from "../assets/images/products/featured/shea.jpg";
+import featuredMultivitamins from "../assets/images/products/featured/multivitamins.jpg";
+import featuredProbiotics from "../assets/images/products/featured/probiotics.jpg";
+import featuredHerbal from "../assets/images/products/featured/herbal.jpg";
+
+// ================= HOT DEALS IMAGES =================
+import hotdealVitc from "../assets/images/products/hotdeals/vitc.jpg";
+import hotdealShea from "../assets/images/products/hotdeals/shea.jpg";
+import hotdealMultivitamins from "../assets/images/products/hotdeals/multivitamins.jpg";
+import hotdealProbiotics from "../assets/images/products/hotdeals/probiotics.jpg";
+import hotdealHerbal from "../assets/images/products/hotdeals/herbal.jpg";
+
+// ================= GENERIC PRODUCT IMAGES =================
 import vitcImg from "../assets/images/products/vitc.jpg";
 import sheaImg from "../assets/images/products/shea.jpg";
 import multivitaminsImg from "../assets/images/products/multivitamins.jpg";
 import probioticsImg from "../assets/images/products/probiotics.jpg";
 import herbalImg from "../assets/images/products/herbal.jpg";
 
-// Fallback images array for random selection
-const fallbackImages = [vitcImg, sheaImg, multivitaminsImg, probioticsImg, herbalImg];
+// ================= FALLBACK IMAGE MAP =================
+const fallbackMap = {
+  featured: {
+    "vit c": featuredVitc,
+    shea: featuredShea,
+    multivitamin: featuredMultivitamins,
+    probiotic: featuredProbiotics,
+    herbal: featuredHerbal,
+  },
+  hotdeal: {
+    "vit c": hotdealVitc,
+    shea: hotdealShea,
+    multivitamin: hotdealMultivitamins,
+    probiotic: hotdealProbiotics,
+    herbal: hotdealHerbal,
+  },
+  generic: {
+    "vit c": vitcImg,
+    shea: sheaImg,
+    multivitamin: multivitaminsImg,
+    probiotic: probioticsImg,
+    herbal: herbalImg,
+  },
+};
 
-// Keyword → fallback image mapping (priority order matters!)
-const fallbackMap = [
-  { keyword: "multivitamin", image: multivitaminsImg },
-  { keyword: "vit c", image: vitcImg },
-  { keyword: "vitamin", image: vitcImg },
-  { keyword: "shea", image: sheaImg },
-  { keyword: "probiotic", image: probioticsImg },
-  { keyword: "herbal", image: herbalImg },
-];
+// ================= HELPER FUNCTION =================
+const getProductImage = (product) => {
+  const type = product.type?.toLowerCase() || "generic"; // 'featured', 'hotdeal', or 'generic'
+  const nameKey = product.name?.toLowerCase() || "";
 
-/**
- * Returns a fallback image based on product name
- * - Matches keywords in priority order
- * - Random fallback if no match
- */
-const getFallbackImage = (name) => {
-  const lowerName = name?.toLowerCase() || "";
-
-  for (const { keyword, image } of fallbackMap) {
-    if (lowerName.includes(keyword)) {
-      return image;
+  // 1️⃣ Try type-specific mapping first
+  if (fallbackMap[type]) {
+    for (const key of Object.keys(fallbackMap[type])) {
+      if (nameKey.includes(key)) return fallbackMap[type][key];
     }
   }
 
-  // Random fallback for unknown products
-  return fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+  // 2️⃣ Fallback to generic mapping
+  for (const key of Object.keys(fallbackMap.generic)) {
+    if (nameKey.includes(key)) return fallbackMap.generic[key];
+  }
+
+  // 3️⃣ Last resort: random generic image
+  const genericImages = Object.values(fallbackMap.generic);
+  return genericImages[Math.floor(Math.random() * genericImages.length)];
 };
 
+// ================= CART PAGE =================
 export default function CartPage() {
   const { cart, increaseQty, decreaseQty, removeFromCart, clearCart, total } = useCart();
   const navigate = useNavigate();
@@ -59,55 +91,60 @@ export default function CartPage() {
             <div className="row g-4">
               {/* ================= CART ITEMS ================= */}
               <div className="col-md-8">
-                {cart.map((item) => (
-                  <div
-                    key={item._id}
-                    className="card p-3 mb-3 d-flex flex-row align-items-center shadow-sm"
-                  >
-                    {/* ✅ IMAGE WITH DETERMINISTIC & RANDOM FALLBACKS */}
-                    <img
-                      src={item.image || getFallbackImage(item.name)}
-                      alt={item.name}
-                      onError={(e) => (e.target.src = getFallbackImage(item.name))}
-                      className="me-3 rounded"
-                      style={{ width: 100, height: 100, objectFit: "cover" }}
-                    />
+                {cart.map((item) => {
+                  const id = item._id || item.name; // ensure consistent identifier
+                  return (
+                    <div
+                      key={id}
+                      className="card p-3 mb-3 d-flex flex-row align-items-center shadow-sm"
+                    >
+                      {/* IMAGE WITH DYNAMIC FALLBACK */}
+                      <img
+                        src={item.image || getProductImage(item)}
+                        alt={item.name}
+                        onError={(e) => (e.target.src = getProductImage(item))}
+                        className="me-3 rounded"
+                        style={{ width: 100, height: 100, objectFit: "cover" }}
+                      />
 
-                    <div className="flex-grow-1">
-                      <h5 className="mb-1">{item.name}</h5>
-                      <p className="text-muted mb-2">
-                        ₦{item.price.toLocaleString()}
-                      </p>
+                      <div className="flex-grow-1">
+                        <h5 className="mb-1">{item.name}</h5>
+                        <p className="text-muted mb-2">
+                          ₦{item.price.toLocaleString()}
+                        </p>
 
-                      <div className="d-flex align-items-center gap-2">
-                        <button
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() => decreaseQty(item._id)}
-                        >
-                          −
-                        </button>
-                        <span className="fw-bold">{item.qty}</span>
-                        <button
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() => increaseQty(item._id)}
-                        >
-                          +
-                        </button>
+                        {/* INCREASE / DECREASE QTY */}
+                        <div className="d-flex align-items-center gap-2">
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => decreaseQty(id)}
+                            disabled={item.qty <= 0}
+                          >
+                            −
+                          </button>
+                          <span className="fw-bold">{item.qty}</span>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => increaseQty(id, item)}
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <p className="mt-2 mb-0">
+                          Subtotal: ₦{(item.price * item.qty).toLocaleString()}
+                        </p>
                       </div>
 
-                      <p className="mt-2 mb-0">
-                        Subtotal: ₦{(item.price * item.qty).toLocaleString()}
-                      </p>
+                      <button
+                        className="btn btn-outline-danger ms-3"
+                        onClick={() => removeFromCart(id)}
+                      >
+                        Remove
+                      </button>
                     </div>
-
-                    <button
-                      className="btn btn-outline-danger ms-3"
-                      onClick={() => removeFromCart(item._id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* ================= ORDER SUMMARY ================= */}
